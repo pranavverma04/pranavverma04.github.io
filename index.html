@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pranav Verma — Embedded + Web</title>
+<meta name="description" content="Pranav Verma builds hardware that talks to screens: ESP32 robots, drones, retro gadgets, and the web apps around them.">
+<meta name="theme-color" content="#08080a">
+<link rel="icon" href="media/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }</script>
+</head>
+<body>
+<canvas id="gl" aria-hidden="true"></canvas>
+<div class="grain" aria-hidden="true"></div>
+
+<header class="top">
+  <a class="mark" href="#" data-jump="0" aria-label="Back to start">PV<span>/</span></a>
+  <nav>
+    <button class="btn-ghost" id="openIndex" aria-haspopup="dialog">Index <span class="count">17</span></button>
+    <button class="btn-ghost" id="openAbout" aria-haspopup="dialog">About</button>
+    <a class="btn" href="media/Pranav-Verma-Resume.pdf" target="_blank" rel="noopener">Resume</a>
+  </nav>
+</header>
+
+<section class="hero" id="hero">
+  <p class="eyebrow mono">Embedded + Web · MAIT, Delhi</p>
+  <h1>I make <em>hardware</em><br>talk to screens.</h1>
+  <p class="sub">Robots, drones and pocket gadgets on ESP32, and the apps that drive them. Every dot spells my name. Scroll and it comes apart into the work.</p>
+  <p class="hint mono"><span class="ring"></span>Scroll to enter</p>
+</section>
+
+<aside class="hud" id="hud" aria-live="polite">
+  <p class="hud-no mono" id="hudNo">00</p>
+  <p class="hud-name" id="hudName">Start</p>
+  <p class="hud-line" id="hudLine"></p>
+</aside>
+
+<nav class="depth" id="depth" aria-label="Sections">
+  <div class="depth-rail"><div class="depth-fill" id="depthFill"></div></div>
+</nav>
+
+<p class="drag-hint mono" id="dragHint">Drag to look around · click a card</p>
+
+<section class="end" id="end" aria-label="Contact">
+  <p class="eyebrow mono">End of the tunnel</p>
+  <h2>That’s me.<br>Let’s build the next one.</h2>
+  <p class="sub">Looking for a <strong>remote embedded internship</strong>. Also open to web work.</p>
+  <div class="end-links">
+    <a class="btn" href="mailto:pranavverma4851@gmail.com">pranavverma4851@gmail.com</a>
+    <a class="btn-ghost" href="media/Pranav-Verma-Resume.pdf" target="_blank" rel="noopener">Resume ↓</a>
+    <a class="btn-ghost" href="https://www.linkedin.com/in/pranav-verma-2b1330433/" target="_blank" rel="noopener">LinkedIn ↗</a>
+    <a class="btn-ghost" href="https://github.com/pranavverma04" target="_blank" rel="noopener">GitHub ↗</a>
+  </div>
+</section>
+
+<div class="spacer" id="spacer"></div>
+
+<div class="panel" id="panel" role="dialog" aria-modal="true" aria-labelledby="pTitle" hidden>
+  <div class="panel-scrim" data-close></div>
+  <article class="panel-card">
+    <button class="panel-x" data-close aria-label="Close">×</button>
+    <div class="panel-media" id="pMedia"></div>
+    <div class="panel-body">
+      <p class="mono panel-meta" id="pMeta"></p>
+      <h3 id="pTitle"></h3>
+      <p class="panel-line" id="pLine"></p>
+      <ul id="pPoints"></ul>
+      <p class="chips" id="pStack"></p>
+      <p class="panel-foot"><span class="status mono" id="pStatus"></span><a id="pLink" class="btn" target="_blank" rel="noopener">Open ↗</a></p>
+      <p class="panel-nav"><button class="btn-ghost" id="pPrev">← Prev</button><button class="btn-ghost" id="pNext">Next →</button></p>
+    </div>
+  </article>
+</div>
+
+<div class="index" id="index" role="dialog" aria-modal="true" aria-label="All projects" hidden>
+  <div class="index-inner">
+    <header><p class="mono">All projects</p><button class="panel-x" data-close-index aria-label="Close">×</button></header>
+    <div id="indexList"></div>
+  </div>
+</div>
+
+<div class="index about" id="about" role="dialog" aria-modal="true" aria-label="About Pranav" hidden>
+  <div class="index-inner">
+    <header><p class="mono">About</p><button class="panel-x" data-close-about aria-label="Close">×</button></header>
+    <h2 class="about-h">Pranav Verma. I build the board, the firmware and the app that drives it.</h2>
+    <div id="aboutBody"></div>
+    <p class="about-links">
+      <a class="btn" href="media/Pranav-Verma-Resume.pdf" target="_blank" rel="noopener">Resume ↓</a>
+      <a class="btn-ghost" href="mailto:pranavverma4851@gmail.com">Email</a>
+      <a class="btn-ghost" href="https://www.linkedin.com/in/pranav-verma-2b1330433/" target="_blank" rel="noopener">LinkedIn ↗</a>
+      <a class="btn-ghost" href="https://github.com/pranavverma04" target="_blank" rel="noopener">GitHub ↗</a>
+    </p>
+  </div>
+</div>
+
+<noscript><p class="noscript">This site needs JavaScript for the 3D tunnel. Email: pranavverma4851@gmail.com · github.com/pranavverma04</p></noscript>
+<script type="module" src="main.js"></script>
+</body>
+</html>
