@@ -543,9 +543,11 @@ function buildPoints(buf, tileList) {
 const intro = { wheels: [], fronts: [] };
 
 // Open-wheel race car, my own model. Nose points to -z. Roughly 1 unit = 2.5 m.
+const PAINT_GLOW = 0.45, PAINT_ENV = 0.3;   // measured: body renders ~#ff5d22 vs headline #ff5a1f
 function buildCar() {
   const car = new THREE.Group();
-  const paint = new THREE.MeshPhysicalMaterial({ color: COL.accent, roughness: 0.32, metalness: 0.05, clearcoat: 1, clearcoatRoughness: 0.08, envMapIntensity: 0.9 });
+  // paint tuned so the body reads as the same orange as the headline (#ff5a1f), with soft highlights only
+  const paint = new THREE.MeshPhysicalMaterial({ color: COL.accent, emissive: COL.accent, emissiveIntensity: PAINT_GLOW, roughness: 0.45, metalness: 0, clearcoat: 0.35, clearcoatRoughness: 0.25, envMapIntensity: PAINT_ENV });
   const carbon = new THREE.MeshStandardMaterial({ color: '#0d0d0f', roughness: 0.45, metalness: 0.5, envMapIntensity: 0.8 });
   const rubber = new THREE.MeshStandardMaterial({ color: '#19191b', roughness: 0.8, metalness: 0, envMapIntensity: 0.7 });
   const metal = new THREE.MeshStandardMaterial({ color: '#2a2a2e', roughness: 0.3, metalness: 0.9 });
