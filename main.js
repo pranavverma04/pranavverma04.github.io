@@ -720,7 +720,7 @@ GROUPS.forEach((g, i) => {
   const b = document.createElement('button'); b.innerHTML = `<span>${g.no} ${g.name}</span>`; b.setAttribute('aria-label', `${g.no} ${g.name}`);
   b.onclick = () => jumpToZ(groupStart(i) + 1.5); g.btn = b; depth.appendChild(b);
 });
-const endBtn = document.createElement('button'); endBtn.innerHTML = '<span>05 Contact</span>'; endBtn.setAttribute('aria-label', 'Contact'); endBtn.onclick = () => scrollTo({ top: maxScroll(), behavior: reduced ? 'instant' : 'smooth' }); depth.appendChild(endBtn);
+const endBtn = document.createElement('button'); endBtn.innerHTML = `<span>${String(GROUPS.length + 1).padStart(2, '0')} Contact</span>`; endBtn.setAttribute('aria-label', 'Contact'); endBtn.onclick = () => scrollTo({ top: maxScroll(), behavior: reduced ? 'instant' : 'smooth' }); depth.appendChild(endBtn);
 function placeDepth() {
   GROUPS.forEach((g, i) => { g.btn.style.top = (pFromZ(groupStart(i) + 1.5) * 100) + '%'; });
   endBtn.style.top = '100%';
