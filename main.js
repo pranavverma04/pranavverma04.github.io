@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { GROUPS, PROJECTS, ABOUT, CHIPS } from './data/projects.js';
 
 const COL = { ink: '#08080a', ink2: '#141417', bone: '#ece6da', dim: '#a8a297', accent: '#ff5a1f' };
@@ -538,103 +539,116 @@ function buildPoints(buf, tileList) {
   scene.add(points);
 }
 
-/* ---------------- intro life: a drone circles the name; a race car leads you through the tunnel ---------------- */
-const intro = { group: new THREE.Group(), mats: [], blades: [], wheels: [], fronts: [] };
-function segCircle(r, n, y = 0) { const a = []; for (let i = 0; i < n; i++) { const t0 = i / n * 6.2832, t1 = (i + 1) / n * 6.2832; a.push(Math.cos(t0) * r, y, Math.sin(t0) * r, Math.cos(t1) * r, y, Math.sin(t1) * r); } return a; }
-function boxLines(w, h, d) { const x = w / 2, y = h / 2, z = d / 2; const c = [[-x, -y, -z], [x, -y, -z], [x, -y, z], [-x, -y, z], [-x, y, -z], [x, y, -z], [x, y, z], [-x, y, z]]; const e = [[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4], [0, 4], [1, 5], [2, 6], [3, 7]]; return e.flatMap(([a, b]) => [...c[a], ...c[b]]); }
-function lines(arr, color, base = 1) { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(arr, 3)); const m = new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0, fog: false }); m.userData.base = base; intro.mats.push(m); return new THREE.LineSegments(g, m); }
+/* ---------------- the race car: parked on the front page, then leads you through the tunnel ---------------- */
+const intro = { wheels: [], fronts: [] };
 
-// An original open-wheel race car built from simple solids. Nose points to -z.
+// Open-wheel race car, my own model. Nose points to -z. Roughly 1 unit = 2.5 m.
 function buildCar() {
   const car = new THREE.Group();
-  const M = (color, o = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.42, metalness: 0.25, ...o });
-  const body = M(COL.bone), acc = M(COL.accent, { roughness: 0.35 }), dark = M('#101012', { roughness: 0.8, metalness: 0 }), carbon = M('#1b1b1f', { roughness: 0.5 });
-  const add = (geo, mat, x, y, z, rx = 0, ry = 0, rz = 0, parent = car) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.rotation.set(rx, ry, rz); parent.add(m); return m; };
+  const paint = new THREE.MeshPhysicalMaterial({ color: '#c4121a', roughness: 0.28, metalness: 0.1, clearcoat: 1, clearcoatRoughness: 0.06, envMapIntensity: 1.1 });
+  const carbon = new THREE.MeshStandardMaterial({ color: '#0d0d0f', roughness: 0.45, metalness: 0.5, envMapIntensity: 0.8 });
+  const rubber = new THREE.MeshStandardMaterial({ color: '#19191b', roughness: 0.8, metalness: 0, envMapIntensity: 0.7 });
+  const metal = new THREE.MeshStandardMaterial({ color: '#2a2a2e', roughness: 0.3, metalness: 0.9 });
+  const visor = new THREE.MeshStandardMaterial({ color: '#111', roughness: 0.1, metalness: 0.9 });
+  const add = (geo, mat, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0, parent = car) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.rotation.set(rx, ry, rz); parent.add(m); return m; };
   const box = (w, h, d) => new THREE.BoxGeometry(w, h, d);
-  // floor, tub, nose, engine cover
-  add(box(0.6, 0.02, 1.35), carbon, 0, 0.06, 0.1);
-  add(box(0.25, 0.15, 0.78), body, 0, 0.165, -0.08);
-  const nose = add(new THREE.CylinderGeometry(0.035, 0.125, 0.72, 14), body, 0, 0.14, -0.8, -Math.PI / 2); nose.scale.z = 0.55;
-  const cover = add(new THREE.CylinderGeometry(0.135, 0.05, 0.75, 14), body, 0, 0.2, 0.6, -Math.PI / 2); cover.scale.z = 0.8;
-  add(box(0.03, 0.2, 0.5), acc, 0, 0.3, 0.62);                                   // shark fin
-  add(box(0.11, 0.12, 0.2), carbon, 0, 0.33, 0.2);                               // airbox
-  // sidepods
-  for (const sx of [-1, 1]) { const pod = add(box(0.19, 0.13, 0.62), acc, sx * 0.22, 0.14, 0.22); pod.rotation.y = sx * 0.06; add(box(0.17, 0.1, 0.04), dark, sx * 0.22, 0.15, -0.1); }
-  // cockpit: helmet + halo
-  add(new THREE.SphereGeometry(0.055, 14, 10), acc, 0, 0.27, 0.02);
-  add(new THREE.TorusGeometry(0.1, 0.013, 6, 18, Math.PI), carbon, 0, 0.26, -0.02, -Math.PI / 2 + 0.25, 0, 0);
-  add(box(0.02, 0.09, 0.02), carbon, 0, 0.275, -0.125);
-  // front wing
-  add(box(0.8, 0.018, 0.17), acc, 0, 0.065, -1.08);
-  add(box(0.74, 0.016, 0.09), body, 0, 0.1, -1.03);
-  for (const sx of [-1, 1]) add(box(0.018, 0.09, 0.2), body, sx * 0.4, 0.1, -1.07);
-  // rear wing
-  add(box(0.56, 0.02, 0.17), acc, 0, 0.47, 0.95, 0.18);
-  add(box(0.56, 0.018, 0.1), body, 0, 0.4, 0.93, 0.1);
-  for (const sx of [-1, 1]) add(box(0.018, 0.3, 0.26), body, sx * 0.285, 0.36, 0.94);
-  add(box(0.04, 0.2, 0.04), carbon, 0, 0.3, 0.92);
-  add(box(0.3, 0.06, 0.03), new THREE.MeshBasicMaterial({ color: COL.accent }), 0, 0.12, 1.02);   // rain light
-  // wheels + suspension arms
-  const tyreF = new THREE.CylinderGeometry(0.15, 0.15, 0.14, 22), tyreR = new THREE.CylinderGeometry(0.165, 0.165, 0.19, 22);
-  const rim = new THREE.CylinderGeometry(0.085, 0.085, 0.01, 16);
-  for (const [sx, z, front] of [[-1, -0.66, 1], [1, -0.66, 1], [-1, 0.66, 0], [1, 0.66, 0]]) {
-    const hub = new THREE.Group(); hub.position.set(sx * 0.38, front ? 0.15 : 0.165, z); car.add(hub);
-    const w = new THREE.Group(); hub.add(w);
-    add(front ? tyreF : tyreR, dark, 0, 0, 0, 0, 0, Math.PI / 2, w);
-    add(rim, body, sx * (front ? 0.073 : 0.098), 0, 0, 0, 0, Math.PI / 2, w);
-    add(box(0.012, 0.012, 0.15), acc, sx * (front ? 0.076 : 0.101), 0, 0, 0, 0, 0, w);              // spoke, shows the spin
-    intro.wheels.push(w); if (front) intro.fronts.push(hub);
-    for (const dz of [-0.09, 0.09]) add(box(0.26, 0.012, 0.02), carbon, sx * 0.24, 0.17, z + dz, 0, sx * dz * 2.4, 0);
+  const UP = new THREE.Vector3(0, 1, 0);
+  const rod = (a, b, r = 0.007, mat = carbon) => { const A = new THREE.Vector3(...a), B = new THREE.Vector3(...b), d = B.clone().sub(A); const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, d.length(), 6), mat); m.position.copy(A).add(B).multiplyScalar(0.5); m.quaternion.setFromUnitVectors(UP, d.normalize()); car.add(m); };
+  // side profile (z, y) pushed out sideways, rounded, then pinched in plan view by `pinch(z)`
+  const hull = (pts, width, pinch, bevel = 0.022) => {
+    const sh = new THREE.Shape(); sh.moveTo(pts[0][0], pts[0][1]); sh.splineThru(pts.slice(1).map(([u, v]) => new THREE.Vector2(u, v))); sh.closePath();
+    const g = new THREE.ExtrudeGeometry(sh, { depth: width, bevelEnabled: true, bevelSize: bevel, bevelThickness: bevel, bevelSegments: 4, curveSegments: 20, steps: 1 });
+    g.translate(0, 0, -width / 2); g.rotateY(-Math.PI / 2);
+    const P = g.attributes.position; for (let i = 0; i < P.count; i++) { const k = pinch(P.getZ(i), P.getY(i)); P.setX(i, P.getX(i) * k); }
+    g.computeVertexNormals(); return g;
+  };
+  const sm = (a, b, v) => smooth(a, b, v);
+
+  // main body: needle nose, cockpit, airbox hump, tight tail
+  add(hull([[-1.13, 0.1], [-1.0, 0.125], [-0.7, 0.17], [-0.36, 0.245], [-0.3, 0.25], [-0.22, 0.235], [-0.04, 0.225], [0.02, 0.3], [0.1, 0.37], [0.2, 0.385], [0.4, 0.33], [0.7, 0.23], [0.98, 0.16], [1.02, 0.12], [1.0, 0.07], [0.3, 0.06], [-0.6, 0.065], [-1.0, 0.075], [-1.12, 0.085]],
+    0.25, (z, y) => lerp(0.3, 1, sm(-1.13, -0.3, z)) * lerp(1, 0.38, sm(0.25, 1.0, z)) * lerp(1, 0.55, sm(0.25, 0.39, y))), paint);
+  // sidepods: tall inlet, sloping down and pulled in at the back
+  for (const sx of [-1, 1]) {
+    const g = hull([[-0.2, 0.075], [-0.2, 0.2], [-0.17, 0.245], [0.0, 0.26], [0.35, 0.21], [0.7, 0.13], [0.86, 0.1], [0.86, 0.07], [0.3, 0.065]], 0.2, () => 1, 0.03);
+    const P = g.attributes.position; for (let i = 0; i < P.count; i++) { const z = P.getZ(i); P.setX(i, P.getX(i) * lerp(1, 0.45, sm(0.15, 0.86, z)) + sx * lerp(0.235, 0.1, sm(0.1, 0.86, z))); }
+    g.computeVertexNormals(); add(g, paint);
+    add(box(0.15, 0.085, 0.02), carbon, sx * 0.235, 0.185, -0.228);
+    // mirror
+    rod([sx * 0.13, 0.25, -0.24], [sx * 0.3, 0.285, -0.22], 0.005); add(box(0.07, 0.035, 0.02), carbon, sx * 0.31, 0.29, -0.215);
   }
-  // glow on the ground under the car
-  const gc = document.createElement('canvas'); gc.width = gc.height = 128; const g = gc.getContext('2d'); const gr = g.createRadialGradient(64, 64, 4, 64, 64, 64); gr.addColorStop(0, 'rgba(255,90,31,.55)'); gr.addColorStop(1, 'rgba(255,90,31,0)'); g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
-  const glow = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 2.9), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(gc), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
-  glow.rotation.x = -Math.PI / 2; glow.position.y = 0.01; car.add(glow);
+  // floor with a raised edge
+  add(box(0.64, 0.014, 1.55), carbon, 0, 0.052, 0.12);
+  for (const sx of [-1, 1]) add(box(0.012, 0.03, 1.0), carbon, sx * 0.318, 0.066, 0.15);
+  // airbox inlet + camera pod
+  add(new THREE.SphereGeometry(0.045, 12, 8), carbon, 0, 0.345, 0.045).scale.set(1, 0.9, 0.5);
+  add(box(0.13, 0.016, 0.03), carbon, 0, 0.41, 0.17);
+  // driver + halo
+  const helmet = add(new THREE.SphereGeometry(0.052, 18, 14), paint, 0, 0.268, -0.1); helmet.scale.set(1, 1.05, 1.15);
+  add(new THREE.SphereGeometry(0.046, 14, 8, 0, Math.PI * 2, 1.1, 0.75), visor, 0, 0.272, -0.112, -Math.PI / 2 + 0.25).scale.set(1.08, 1.2, 1.08);
+  add(new THREE.TorusGeometry(0.105, 0.012, 8, 28, Math.PI), carbon, 0, 0.275, -0.1, -Math.PI / 2 + 0.12, 0, Math.PI);
+  rod([0, 0.275, -0.205], [0, 0.215, -0.33], 0.011);
+  // front wing: four stacked curved elements + endplates
+  for (let i = 0; i < 4; i++) { const w = add(box(0.8, 0.008, 0.075), i < 3 ? carbon : paint, 0, 0.05 + i * 0.022, -1.17 + i * 0.05, 0.12 + i * 0.16); w.scale.x = 1 - i * 0.012; }
+  for (const sx of [-1, 1]) { add(box(0.01, 0.1, 0.24), paint, sx * 0.402, 0.09, -1.1); add(box(0.05, 0.008, 0.2), carbon, sx * 0.38, 0.042, -1.1); }
+  rod([-0.06, 0.1, -1.1], [-0.05, 0.07, -1.16], 0.008); rod([0.06, 0.1, -1.1], [0.05, 0.07, -1.16], 0.008);
+  // rear wing: two elements, tall endplates, lower beam, centre pillar, rain light
+  add(box(0.62, 0.012, 0.15), carbon, 0, 0.415, 0.99, 0.2);
+  add(box(0.62, 0.01, 0.085), carbon, 0, 0.455, 1.07, 0.55);
+  add(box(0.5, 0.01, 0.07), carbon, 0, 0.2, 1.03, 0.25);
+  for (const sx of [-1, 1]) { add(box(0.012, 0.33, 0.3), paint, sx * 0.314, 0.325, 1.01); add(box(0.014, 0.1, 0.3), carbon, sx * 0.314, 0.44, 1.01); }
+  rod([0, 0.16, 0.95], [0, 0.4, 0.99], 0.012);
+  add(box(0.035, 0.07, 0.02), new THREE.MeshBasicMaterial({ color: '#ff2a1a' }), 0, 0.14, 1.06);
+  // wheels: tyres with rounded shoulders, dark rims
+  const tyre = (r, w) => { const h = w / 2, pts = [[r * 0.6, -h], [r * 0.88, -h], [r * 0.97, -h + 0.014], [r, -h + 0.034], [r, h - 0.034], [r * 0.97, h - 0.014], [r * 0.88, h], [r * 0.6, h]].map(([a, b]) => new THREE.Vector2(a, b)); return new THREE.LatheGeometry(pts, 36); };
+  const tF = tyre(0.146, 0.125), tR = tyre(0.146, 0.165);
+  for (const [sx, z, front] of [[-1, -0.72, 1], [1, -0.72, 1], [-1, 0.72, 0], [1, 0.72, 0]]) {
+    const wd = front ? 0.125 : 0.165, hx = sx * (0.4 - wd / 2 + 0.0625), hy = 0.146;
+    const hub = new THREE.Group(); hub.position.set(hx, hy, z); car.add(hub);
+    const w = new THREE.Group(); hub.add(w);
+    add(front ? tF : tR, rubber, 0, 0, 0, 0, 0, Math.PI / 2, w);
+    add(new THREE.CylinderGeometry(0.092, 0.092, wd * 0.9, 24), metal, 0, 0, 0, 0, 0, Math.PI / 2, w);
+    for (let k = 0; k < 5; k++) add(box(0.004, 0.16, 0.014), carbon, sx * (wd * 0.45 + 0.002), 0, 0, k * Math.PI / 5, 0, 0, w);
+    intro.wheels.push(w); if (front) intro.fronts.push(hub);
+    // wishbones + push rod
+    const inX = sx * (front ? 0.07 : 0.1), outX = hx - sx * wd * 0.5;
+    for (const [y0, y1] of [[front ? 0.2 : 0.2, 0.2], [0.085, 0.09]]) { rod([inX, y0, z - 0.2], [outX, y1, z]); rod([inX, y0, z + 0.16], [outX, y1, z]); }
+    rod([inX, front ? 0.21 : 0.19, z + (front ? 0.02 : -0.05)], [outX, 0.1, z], 0.006);
+  }
+  // soft contact shadow so it sits on something
+  const gc = document.createElement('canvas'); gc.width = gc.height = 128; const g2 = gc.getContext('2d'); const gr = g2.createRadialGradient(64, 64, 10, 64, 64, 64); gr.addColorStop(0, 'rgba(196,18,26,.5)'); gr.addColorStop(0.5, 'rgba(196,18,26,.16)'); gr.addColorStop(1, 'rgba(196,18,26,0)'); g2.fillStyle = gr; g2.fillRect(0, 0, 128, 128);
+  const glow = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 3.1), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(gc), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
+  glow.rotation.x = -Math.PI / 2; glow.position.y = 0.004; car.add(glow);
   return car;
 }
 
 function buildIntro() {
-  const drone = new THREE.Group(); const A = 0.2;
-  drone.add(lines([-A, 0, -A, A, 0, A, -A, 0, A, A, 0, -A, ...boxLines(0.13, 0.05, 0.18)], COL.bone));
-  for (const [dx, dz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
-    const ring = lines(segCircle(0.13, 20), COL.accent, 0.9); ring.position.set(dx * A, 0.02, dz * A); drone.add(ring);
-    const blade = lines([-0.12, 0, 0, 0.12, 0, 0, 0, 0, -0.12, 0, 0, 0.12], COL.bone, 0.7); blade.position.copy(ring.position); drone.add(blade); intro.blades.push(blade);
-  }
-  intro.group.add(drone); intro.drone = drone; scene.add(intro.group);
-
-  intro.car = buildCar(); intro.car.scale.setScalar(mobile ? 0.8 : 1); scene.add(intro.car);
-  scene.add(new THREE.HemisphereLight(0xfff4e6, 0x0a0a0c, 1.5));
-  const key = new THREE.DirectionalLight(0xffffff, 2.2); key.position.set(2, 4, 3); intro.key = key; scene.add(key, key.target);
+  const pm = new THREE.PMREMGenerator(renderer);
+  scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture;   // reflections for the paint
+  intro.car = buildCar(); scene.add(intro.car);
+  const key = new THREE.DirectionalLight(0xffffff, 1.6); intro.key = key; scene.add(key, key.target);
 }
 
-const carPark = mobile ? [0, -0.35, 0.4] : [AV_X - 0.3, AV_Y - 1.7, 0.2];
+const carPark = mobile ? [0, -0.4, 0.4] : [AV_X - 0.25, AV_Y - 1.75, 0.3];
+const SIZE = mobile ? 0.85 : 1;
 function updateIntro(time, p, cz) {
   const t = reduced ? 1.1 : time;
-  // drone: orbits the name, then flies ahead into the tunnel
-  const a = 1 - smooth(0.02, 0.1, p);
-  intro.group.visible = a > 0.01;
-  if (intro.group.visible) {
-    for (const m of intro.mats) m.opacity = a * m.userData.base;
-    const o = t * 0.45, OR = mobile ? 1.35 : 2.1, d = intro.drone;
-    d.position.set(AV_X + Math.cos(o) * OR, AV_Y + (mobile ? 0.95 : 0.85) + Math.sin(t * 1.7) * 0.07, Math.sin(o) * 1.1 - smooth(0, 0.1, p) * 9);
-    d.rotation.set(Math.sin(t * 1.3) * 0.08, -o, 0.22, 'YXZ');
-    for (const b of intro.blades) b.rotation.y = t * 38;
-  }
-  // car: parked on show at the start, then drives ahead of the camera, parks again at the end
-  const go = smooth(0.02, 0.14, p), end = smooth(0.94, 0.995, p), drive = go * (1 - end);
+  // parked facing you at the start, swings round and drives ahead of the camera, parks again at the end
+  const go = smooth(0.02, 0.15, p), end = smooth(0.94, 0.995, p), drive = go * (1 - end);
   const steer = -look.yaw * 1.6;
-  const dx = steer, dy = mobile ? -1.95 : -1.75, dz = cz - (mobile ? 6.2 : 5.3);
-  const ex = mobile ? 0 : 1.5, ey = mobile ? -0.4 : -1.15, ez = Z_END + 1.2;
+  const dy = mobile ? -1.95 : -1.75, dz = cz - (mobile ? 6.2 : 5.3);
+  const ex = mobile ? 0 : 1.4, ey = mobile ? -0.45 : -1.2, ez = Z_END + 1.3;
   const c = intro.car;
-  let x = lerp(carPark[0], dx, go), y = lerp(carPark[1], dy, go), z = lerp(carPark[2], dz, go);
+  let x = lerp(carPark[0], steer, go), y = lerp(carPark[1], dy, go), z = lerp(carPark[2], dz, go);
   x = lerp(x, ex, end); y = lerp(y, ey, end); z = lerp(z, ez, end);
-  c.position.set(x, y + (reduced ? 0 : Math.sin(t * 31) * 0.0025 * (1 - drive)), z);
-  const show = 0.85 + Math.sin(t * 0.35) * 0.3;                    // slow turntable while parked
-  c.rotation.set(0, lerp(lerp(show, (steer - x) * 0.25, go), -0.8, end), (steer - x) * -0.05 * drive);
-  const roll = (CAM_START - cz) / 0.15;
+  c.position.set(x, y, z);
+  const show = Math.PI - 0.62 + Math.sin(t * 0.3) * 0.22;
+  const lean = (steer - x) * drive;
+  c.rotation.set(0, lerp(lerp(show, lean * 0.25, go), Math.PI - 0.7, end), -lean * 0.04);
+  c.scale.setScalar(SIZE * lerp(lerp(1.3, 1, go), 1.2, end));
+  const roll = (CAM_START - cz) / 0.146;
   for (const w of intro.wheels) w.rotation.x = -roll;
-  for (const h of intro.fronts) h.rotation.y = (steer - x) * 0.5 * drive;
-  intro.key.position.set(x + 2, y + 4, z + 3); intro.key.target.position.set(x, y, z);
+  for (const h of intro.fronts) h.rotation.y = lerp(0.3 * (1 - go), lean * 0.5, go);
+  intro.key.position.set(x + 2.5, y + 4, z + 3); intro.key.target.position.set(x, y, z);
 }
 
 /* ---------------- UI: panel, index, depth nav ---------------- */
