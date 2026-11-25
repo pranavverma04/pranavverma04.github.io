@@ -632,23 +632,27 @@ const SHOW_YAW = 1.95;   // opening pose: three-quarter view, nose to the left
 const carPark = mobile ? [0, -0.4, 0.4] : [AV_X - 0.02, AV_Y - 1.36, 0.3];
 const SIZE = mobile ? 0.85 : 1;
 function updateIntro(time, p, cz) {
-  const t = reduced ? 1.1 : time;
-  // parked facing you at the start, swings round and drives ahead of the camera, parks again at the end
-  const go = smooth(0.02, 0.15, p), end = smooth(0.94, 0.995, p), drive = go * (1 - end);
-  const steer = -look.yaw * 1.6;
-  const dy = mobile ? -1.95 : -1.75, dz = cz - (mobile ? 6.2 : 5.3);
-  const ex = mobile ? 0 : 1.4, ey = mobile ? -0.45 : -1.2, ez = Z_END + 1.3;
+  // Two scenes only: parked under the name at the start, parked by the name at the end.
+  // On the first scroll it turns into the tunnel and drives off; it is hidden between the projects.
   const c = intro.car;
-  let x = lerp(carPark[0], steer, go), y = lerp(carPark[1], dy, go), z = lerp(carPark[2], dz, go);
-  x = lerp(x, ex, end); y = lerp(y, ey, end); z = lerp(z, ez, end);
-  c.position.set(x, y, z);
-  const show = SHOW_YAW;   // fixed opening pose; the car only moves once you scroll
-  const lean = (steer - x) * drive;
-  c.rotation.set(0, lerp(lerp(show, lean * 0.25, go), Math.PI - 0.7, end), -lean * 0.04);
-  c.scale.setScalar(SIZE * lerp(lerp(mobile ? 1.3 : 1.03, 1, go), 1.2, end));
-  const roll = (CAM_START - cz) / 0.146;
-  for (const w of intro.wheels) w.rotation.x = -roll;
-  for (const h of intro.fronts) h.rotation.y = lerp(0.3 * (1 - go), lean * 0.5, go);
+  const leave = smooth(0.012, 0.12, p), atEnd = p > 0.8;
+  c.visible = atEnd || leave < 0.999;
+  if (!c.visible) return;
+  let x, y, z, yaw, sc, steerF, travel;
+  if (!atEnd) {
+    const turn = smooth(0, 0.35, leave), run = leave * leave;          // swing the nose into the tunnel, then accelerate
+    x = lerp(carPark[0], carPark[0] * 0.45, run); y = carPark[1]; z = carPark[2] - run * 22;
+    yaw = lerp(SHOW_YAW, 0.12, turn);
+    sc = SIZE * (mobile ? 1.3 : 1.03);
+    steerF = lerp(0.3, -0.35, turn) * (1 - smooth(0.35, 0.6, leave));
+    travel = run * 22;
+  } else {
+    x = mobile ? 0 : 1.4; y = mobile ? -0.45 : -1.2; z = Z_END + 1.3;
+    yaw = Math.PI - 0.7; sc = SIZE * 1.2; steerF = 0.3; travel = 0;
+  }
+  c.position.set(x, y, z); c.rotation.set(0, yaw, 0); c.scale.setScalar(sc);
+  for (const w of intro.wheels) w.rotation.x = -travel / 0.146;
+  for (const h of intro.fronts) h.rotation.y = steerF;
   intro.key.position.set(x + 2.5, y + 4, z + 3); intro.key.target.position.set(x, y, z);
 }
 

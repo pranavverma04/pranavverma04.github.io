@@ -24,7 +24,7 @@ export const PROJECTS = [
   {
     id: 'esp32-drone', group: 'hw', title: 'ESP32 Drone', img: 'media/drone.jpg', video: 'media/drone.mp4',
     line: 'Brushed quadcopter with flight code written from scratch.',
-    status: 'Lifted off · with Palash Kuchroo',
+    status: 'Flight firmware',
     stack: ['ESP32', 'MPU6050', 'FreeRTOS', 'PID', 'Kotlin'],
     points: [
       'Team build with Palash Kuchroo. 1S brushed quad, MOSFET motor drivers.',
