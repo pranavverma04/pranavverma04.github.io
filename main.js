@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { gsap } from 'gsap';
 import { GROUPS, PROJECTS, ABOUT, CHIPS } from './data/projects.js';
 
 const COL = { ink: '#08080a', ink2: '#141417', bone: '#ece6da', dim: '#a8a297', accent: '#ff5a1f' };
@@ -540,7 +542,7 @@ function buildPoints(buf, tileList) {
 }
 
 /* ---------------- the race car: parked on the front page, then leads you through the tunnel ---------------- */
-const intro = { wheels: [], fronts: [] };
+const intro = { wheels: [], fronts: [], anim: { fade: 0, lift: 0, yaw: 0 } };
 
 // Open-wheel race car, my own model. Nose points to -z. Roughly 1 unit = 2.5 m.
 const PAINT_GLOW = 0.45, PAINT_ENV = 0.3;   // measured: body renders ~#ff5d22 vs headline #ff5a1f
@@ -626,10 +628,45 @@ function buildCar() {
 function buildIntro() {
   const pm = new THREE.PMREMGenerator(renderer);
   scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture;   // reflections for the paint
-  intro.car = buildCar(); scene.add(intro.car);
+  intro.car = new THREE.Group(); scene.add(intro.car);
+  // the car model (media/car.glb), fitted to the same size and spot as the old hand-built car
+  const ref = new THREE.Box3().setFromObject(buildCar());
+  const useOld = () => { intro.car.add(buildCar()); intro.opacity = undefined; intro.anim.fade = 1; };
+  new GLTFLoader().load('media/car.glb', (gltf) => {
+    const m = gltf.scene;
+    m.rotation.y = GLB_YAW;                         // nose to -z, like the old car
+    const b = new THREE.Box3().setFromObject(m), size = b.getSize(new THREE.Vector3());
+    const k = (ref.max.z - ref.min.z) / size.z; m.scale.setScalar(k);
+    const b2 = new THREE.Box3().setFromObject(m), c = b2.getCenter(new THREE.Vector3());
+    m.position.set(-c.x, -b2.min.y + ref.min.y, -c.z + (ref.min.z + ref.max.z) / 2);
+    m.traverse((o) => { if (o.isMesh) o.material = carPaint(o.material); });
+    intro.car.add(m, contactShadow(ref)); intro.opacity = undefined;
+    // GSAP: settle into the parked pose, then a slow idle sway
+    gsap.fromTo(intro.anim, { fade: 0, lift: 0.12, yaw: -0.35 }, { fade: 1, lift: 0, yaw: 0, duration: reduced ? 0 : 1.4, ease: 'power3.out',
+      onComplete: () => { if (!reduced) gsap.to(intro.anim, { yaw: 0.12, duration: 4, ease: 'sine.inOut', yoyo: true, repeat: -1 }); } });
+  }, undefined, useOld);
   const key = new THREE.DirectionalLight(0xffffff, 1.6); intro.key = key; scene.add(key, key.target);
 }
 
+const GLB_YAW = Math.PI / 2;
+// glossy clear coat only where the texture is orange paint; carbon and tyres stay matte
+function carPaint(src) {
+  const img = src.map.image, S = 1024, cv = document.createElement('canvas'); cv.width = cv.height = S;
+  const g = cv.getContext('2d'); g.drawImage(img, 0, 0, S, S);
+  const d = g.getImageData(0, 0, S, S), px = d.data;
+  for (let i = 0; i < px.length; i += 4) { const r = px[i], gg = px[i + 1], b = px[i + 2]; const paint = r > 110 && r > gg * 1.35 && r > b * 2 ? 255 : 0; px[i] = px[i + 1] = px[i + 2] = paint; }
+  g.putImageData(d, 0, 0);
+  const mask = new THREE.CanvasTexture(cv); mask.flipY = false;
+  return new THREE.MeshPhysicalMaterial({ map: src.map, normalMap: src.normalMap, roughnessMap: src.roughnessMap, metalnessMap: src.metalnessMap, roughness: src.roughness, metalness: src.metalness,
+    clearcoat: 1, clearcoatMap: mask, clearcoatRoughness: 0.1, envMapIntensity: 0.85 });
+}
+function contactShadow(ref) {
+  const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d');
+  const gr = g.createRadialGradient(64, 64, 6, 64, 64, 64); gr.addColorStop(0, 'rgba(0,0,0,.7)'); gr.addColorStop(0.55, 'rgba(0,0,0,.3)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
+  const w = (ref.max.x - ref.min.x) * 1.25, l = (ref.max.z - ref.min.z) * 1.1;
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, l), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false }));
+  m.rotation.x = -Math.PI / 2; m.position.set(0, ref.min.y + 0.003, (ref.min.z + ref.max.z) / 2); return m;
+}
 const SHOW_YAW = 1.95;   // opening pose: three-quarter view, nose to the left
 const carPark = mobile ? [0, -0.4, 0.4] : [AV_X - 0.02, AV_Y - 1.36, 0.3];
 const SIZE = mobile ? 0.85 : 1;
@@ -645,13 +682,13 @@ function updateIntro(time, p, cz) {
   const o = atEnd ? smooth(0.93, 0.975, p) : 1 - smooth(0.008, 0.05, p);
   c.visible = o > 0.01;
   if (!c.visible) return;
-  setCarOpacity(o);
+  setCarOpacity(o * (atEnd ? 1 : intro.anim.fade));
   const x = atEnd ? (mobile ? 0 : 1.4) : carPark[0];
   const y = atEnd ? (mobile ? -0.45 : -1.2) : carPark[1];
   const z = atEnd ? Z_END + 1.3 : carPark[2];
-  c.position.set(x, y, z);
-  c.rotation.set(0, atEnd ? Math.PI - 0.7 : SHOW_YAW, 0);
-  c.scale.setScalar(SIZE * (atEnd ? 1.2 : (mobile ? 1.3 : 1.03)));
+  c.position.set(x, y + (atEnd ? 0 : intro.anim.lift), z);
+  c.rotation.set(0, (atEnd ? Math.PI - 0.7 : SHOW_YAW) + intro.anim.yaw, 0);
+  c.scale.setScalar(SIZE * (atEnd ? 1.2 : (mobile ? 0.95 : 1.03)));
   for (const h of intro.fronts) h.rotation.y = 0.3;
   intro.key.position.set(x + 2.5, y + 4, z + 3); intro.key.target.position.set(x, y, z);
 }
