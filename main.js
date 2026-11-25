@@ -633,28 +633,26 @@ function buildIntro() {
 const SHOW_YAW = 1.95;   // opening pose: three-quarter view, nose to the left
 const carPark = mobile ? [0, -0.4, 0.4] : [AV_X - 0.02, AV_Y - 1.36, 0.3];
 const SIZE = mobile ? 0.85 : 1;
+function setCarOpacity(o) {
+  if (intro.opacity === o) return; intro.opacity = o;
+  intro.car.traverse((m) => { if (!m.material) return; const mat = m.material; if (mat.userData.base === undefined) mat.userData.base = mat.opacity; mat.transparent = o < 1 || mat.userData.base < 1; mat.opacity = mat.userData.base * o; });
+}
 function updateIntro(time, p, cz) {
-  // Two scenes only: parked under the name at the start, parked by the name at the end.
-  // On the first scroll it turns into the tunnel and drives off; it is hidden between the projects.
+  // Two still scenes only: parked under the name at the start, parked by the name at the end.
+  // No driving: it fades out as you start scrolling and fades back in when you reach the end.
   const c = intro.car;
-  const leave = smooth(0.012, 0.12, p), atEnd = p > 0.8;
-  c.visible = atEnd || leave < 0.999;
+  const atEnd = p > 0.5;
+  const o = atEnd ? smooth(0.93, 0.975, p) : 1 - smooth(0.008, 0.05, p);
+  c.visible = o > 0.01;
   if (!c.visible) return;
-  let x, y, z, yaw, sc, steerF, travel;
-  if (!atEnd) {
-    const turn = smooth(0, 0.35, leave), run = leave * leave;          // swing the nose into the tunnel, then accelerate
-    x = lerp(carPark[0], carPark[0] * 0.45, run); y = carPark[1]; z = carPark[2] - run * 22;
-    yaw = lerp(SHOW_YAW, 0.12, turn);
-    sc = SIZE * (mobile ? 1.3 : 1.03);
-    steerF = lerp(0.3, -0.35, turn) * (1 - smooth(0.35, 0.6, leave));
-    travel = run * 22;
-  } else {
-    x = mobile ? 0 : 1.4; y = mobile ? -0.45 : -1.2; z = Z_END + 1.3;
-    yaw = Math.PI - 0.7; sc = SIZE * 1.2; steerF = 0.3; travel = 0;
-  }
-  c.position.set(x, y, z); c.rotation.set(0, yaw, 0); c.scale.setScalar(sc);
-  for (const w of intro.wheels) w.rotation.x = -travel / 0.146;
-  for (const h of intro.fronts) h.rotation.y = steerF;
+  setCarOpacity(o);
+  const x = atEnd ? (mobile ? 0 : 1.4) : carPark[0];
+  const y = atEnd ? (mobile ? -0.45 : -1.2) : carPark[1];
+  const z = atEnd ? Z_END + 1.3 : carPark[2];
+  c.position.set(x, y, z);
+  c.rotation.set(0, atEnd ? Math.PI - 0.7 : SHOW_YAW, 0);
+  c.scale.setScalar(SIZE * (atEnd ? 1.2 : (mobile ? 1.3 : 1.03)));
+  for (const h of intro.fronts) h.rotation.y = 0.3;
   intro.key.position.set(x + 2.5, y + 4, z + 3); intro.key.target.position.set(x, y, z);
 }
 
