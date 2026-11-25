@@ -632,7 +632,7 @@ function buildIntro() {
   // the car model (media/car.glb), fitted to the same size and spot as the old hand-built car
   const ref = new THREE.Box3().setFromObject(buildCar());
   const useOld = () => { intro.car.add(buildCar()); intro.opacity = undefined; intro.anim.fade = 1; };
-  new GLTFLoader().load('media/car.glb?v=white1', (gltf) => {
+  new GLTFLoader().load('media/car.glb?v=graphite1', (gltf) => {
     const m = gltf.scene;
     m.rotation.y = GLB_YAW;                         // nose to -z, like the old car
     const b = new THREE.Box3().setFromObject(m), size = b.getSize(new THREE.Vector3());

@@ -5,5 +5,5 @@ This work is based on "Lotus Renault F1 Car (FREE DOWNLOAD)"
 by Kanedog (https://sketchfab.com/Kane33), licensed under CC-BY-4.0
 (http://creativecommons.org/licenses/by/4.0/).
 
-Changes: livery repainted white and black, all sponsor text and logos removed,
+Changes: livery repainted graphite and white, all sponsor text and logos removed,
 ground plane removed, textures resized, mesh data repacked.
