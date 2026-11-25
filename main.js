@@ -21,8 +21,8 @@ const Z_END = Z0 - GROUPS.length * GROUP_LEN - 2;   // the second "me" waits her
 const CAM_START = 4.6;
 const CAM_STOP = Z_END + 5.4;
 const CARD_W = 1.5, CARD_H = CARD_W / 0.727;
-const NAME_W = mobile ? 2.5 : 3.3;   // width of the dot name in world units
-const AV_X = mobile ? 0 : 2.05, AV_Y = mobile ? 0.9 : 0.75;
+const NAME_W = mobile ? 2.5 : 2.55;   // width of the dot name in world units
+const AV_X = mobile ? 0 : 2.4, AV_Y = mobile ? 0.9 : 0.5;
 
 const groupStart = (g) => Z0 - g * GROUP_LEN;
 const SIDE_ANGLES = [Math.PI + 0.22, -0.24, Math.PI - 0.3, 0.3, Math.PI + 0.05, -0.08];
@@ -545,7 +545,7 @@ const intro = { wheels: [], fronts: [] };
 // Open-wheel race car, my own model. Nose points to -z. Roughly 1 unit = 2.5 m.
 function buildCar() {
   const car = new THREE.Group();
-  const paint = new THREE.MeshPhysicalMaterial({ color: '#c4121a', roughness: 0.28, metalness: 0.1, clearcoat: 1, clearcoatRoughness: 0.06, envMapIntensity: 1.1 });
+  const paint = new THREE.MeshPhysicalMaterial({ color: COL.accent, roughness: 0.32, metalness: 0.05, clearcoat: 1, clearcoatRoughness: 0.08, envMapIntensity: 0.9 });
   const carbon = new THREE.MeshStandardMaterial({ color: '#0d0d0f', roughness: 0.45, metalness: 0.5, envMapIntensity: 0.8 });
   const rubber = new THREE.MeshStandardMaterial({ color: '#19191b', roughness: 0.8, metalness: 0, envMapIntensity: 0.7 });
   const metal = new THREE.MeshStandardMaterial({ color: '#2a2a2e', roughness: 0.3, metalness: 0.9 });
@@ -583,7 +583,7 @@ function buildCar() {
   add(new THREE.SphereGeometry(0.045, 12, 8), carbon, 0, 0.345, 0.045).scale.set(1, 0.9, 0.5);
   add(box(0.13, 0.016, 0.03), carbon, 0, 0.41, 0.17);
   // driver + halo
-  const helmet = add(new THREE.SphereGeometry(0.052, 18, 14), paint, 0, 0.268, -0.1); helmet.scale.set(1, 1.05, 1.15);
+  const helmet = add(new THREE.SphereGeometry(0.052, 18, 14), new THREE.MeshStandardMaterial({ color: COL.bone, roughness: 0.3 }), 0, 0.268, -0.1); helmet.scale.set(1, 1.05, 1.15);
   add(new THREE.SphereGeometry(0.046, 14, 8, 0, Math.PI * 2, 1.1, 0.75), visor, 0, 0.272, -0.112, -Math.PI / 2 + 0.25).scale.set(1.08, 1.2, 1.08);
   add(new THREE.TorusGeometry(0.105, 0.012, 8, 28, Math.PI), carbon, 0, 0.275, -0.1, -Math.PI / 2 + 0.12, 0, Math.PI);
   rod([0, 0.275, -0.205], [0, 0.215, -0.33], 0.011);
@@ -597,7 +597,7 @@ function buildCar() {
   add(box(0.5, 0.01, 0.07), carbon, 0, 0.2, 1.03, 0.25);
   for (const sx of [-1, 1]) { add(box(0.012, 0.33, 0.3), paint, sx * 0.314, 0.325, 1.01); add(box(0.014, 0.1, 0.3), carbon, sx * 0.314, 0.44, 1.01); }
   rod([0, 0.16, 0.95], [0, 0.4, 0.99], 0.012);
-  add(box(0.035, 0.07, 0.02), new THREE.MeshBasicMaterial({ color: '#ff2a1a' }), 0, 0.14, 1.06);
+  add(box(0.035, 0.07, 0.02), new THREE.MeshBasicMaterial({ color: COL.accent }), 0, 0.14, 1.06);
   // wheels: tyres with rounded shoulders, dark rims
   const tyre = (r, w) => { const h = w / 2, pts = [[r * 0.6, -h], [r * 0.88, -h], [r * 0.97, -h + 0.014], [r, -h + 0.034], [r, h - 0.034], [r * 0.97, h - 0.014], [r * 0.88, h], [r * 0.6, h]].map(([a, b]) => new THREE.Vector2(a, b)); return new THREE.LatheGeometry(pts, 36); };
   const tF = tyre(0.146, 0.125), tR = tyre(0.146, 0.165);
@@ -615,7 +615,7 @@ function buildCar() {
     rod([inX, front ? 0.21 : 0.19, z + (front ? 0.02 : -0.05)], [outX, 0.1, z], 0.006);
   }
   // soft contact shadow so it sits on something
-  const gc = document.createElement('canvas'); gc.width = gc.height = 128; const g2 = gc.getContext('2d'); const gr = g2.createRadialGradient(64, 64, 10, 64, 64, 64); gr.addColorStop(0, 'rgba(196,18,26,.5)'); gr.addColorStop(0.5, 'rgba(196,18,26,.16)'); gr.addColorStop(1, 'rgba(196,18,26,0)'); g2.fillStyle = gr; g2.fillRect(0, 0, 128, 128);
+  const gc = document.createElement('canvas'); gc.width = gc.height = 128; const g2 = gc.getContext('2d'); const gr = g2.createRadialGradient(64, 64, 10, 64, 64, 64); gr.addColorStop(0, 'rgba(255,90,31,.42)'); gr.addColorStop(0.5, 'rgba(255,90,31,.13)'); gr.addColorStop(1, 'rgba(255,90,31,0)'); g2.fillStyle = gr; g2.fillRect(0, 0, 128, 128);
   const glow = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 3.1), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(gc), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
   glow.rotation.x = -Math.PI / 2; glow.position.y = 0.004; car.add(glow);
   return car;
@@ -628,7 +628,8 @@ function buildIntro() {
   const key = new THREE.DirectionalLight(0xffffff, 1.6); intro.key = key; scene.add(key, key.target);
 }
 
-const carPark = mobile ? [0, -0.4, 0.4] : [AV_X - 0.25, AV_Y - 1.75, 0.3];
+const SHOW_YAW = 1.95;   // opening pose: three-quarter view, nose to the left
+const carPark = mobile ? [0, -0.4, 0.4] : [AV_X - 0.02, AV_Y - 1.36, 0.3];
 const SIZE = mobile ? 0.85 : 1;
 function updateIntro(time, p, cz) {
   const t = reduced ? 1.1 : time;
@@ -641,10 +642,10 @@ function updateIntro(time, p, cz) {
   let x = lerp(carPark[0], steer, go), y = lerp(carPark[1], dy, go), z = lerp(carPark[2], dz, go);
   x = lerp(x, ex, end); y = lerp(y, ey, end); z = lerp(z, ez, end);
   c.position.set(x, y, z);
-  const show = Math.PI - 0.62 + Math.sin(t * 0.3) * 0.22;
+  const show = SHOW_YAW;   // fixed opening pose; the car only moves once you scroll
   const lean = (steer - x) * drive;
   c.rotation.set(0, lerp(lerp(show, lean * 0.25, go), Math.PI - 0.7, end), -lean * 0.04);
-  c.scale.setScalar(SIZE * lerp(lerp(1.3, 1, go), 1.2, end));
+  c.scale.setScalar(SIZE * lerp(lerp(mobile ? 1.3 : 1.03, 1, go), 1.2, end));
   const roll = (CAM_START - cz) / 0.146;
   for (const w of intro.wheels) w.rotation.x = -roll;
   for (const h of intro.fronts) h.rotation.y = lerp(0.3 * (1 - go), lean * 0.5, go);
