@@ -636,10 +636,10 @@ function buildIntro() {
     const m = gltf.scene;
     m.rotation.y = GLB_YAW;                         // nose to -z, like the old car
     const b = new THREE.Box3().setFromObject(m), size = b.getSize(new THREE.Vector3());
-    const k = (ref.max.z - ref.min.z) / size.z; m.scale.setScalar(k);
+    const k = (ref.max.z - ref.min.z) / size.z * GLB_SIZE; m.scale.setScalar(k);
     const b2 = new THREE.Box3().setFromObject(m), c = b2.getCenter(new THREE.Vector3());
     m.position.set(-c.x, -b2.min.y + ref.min.y, -c.z + (ref.min.z + ref.max.z) / 2);
-    m.traverse((o) => { if (o.isMesh) o.material = carPaint(o.material); });
+    m.traverse((o) => { if (!o.isMesh) return; if (/Livery|f1_Car/.test(o.material.name)) o.material = carPaint(o.material); else o.material.envMapIntensity = 0.8; });   // body gets the gloss coat
     intro.car.add(m, contactShadow(ref)); intro.opacity = undefined;
     // GSAP: settle into the parked pose, then a slow idle sway
     gsap.fromTo(intro.anim, { fade: 0, lift: 0.12, yaw: -0.35 }, { fade: 1, lift: 0, yaw: 0, duration: reduced ? 0 : 1.4, ease: 'power3.out',
@@ -648,17 +648,19 @@ function buildIntro() {
   const key = new THREE.DirectionalLight(0xffffff, 1.6); intro.key = key; scene.add(key, key.target);
 }
 
-const GLB_YAW = Math.PI / 2;
+const GLB_YAW = Math.PI / 2, GLB_SIZE = 1.0, PAINT_SHADE = 1;     // <1 darkens the paint
 // glossy clear coat only where the texture is orange paint; carbon and tyres stay matte
 function carPaint(src) {
   const img = src.map.image, S = 1024, cv = document.createElement('canvas'); cv.width = cv.height = S;
   const g = cv.getContext('2d'); g.drawImage(img, 0, 0, S, S);
   const d = g.getImageData(0, 0, S, S), px = d.data;
-  for (let i = 0; i < px.length; i += 4) { const r = px[i], gg = px[i + 1], b = px[i + 2]; const paint = r > 110 && r > gg * 1.35 && r > b * 2 ? 255 : 0; px[i] = px[i + 1] = px[i + 2] = paint; }
+  // gloss mask: the lower 60% of this car's texture sheet is the painted bodywork (black + gold); the top is wings, floor, tyres
+  for (let i = 0; i < px.length; i += 4) { const row = (i / 4 / S) | 0; const paint = row > S * 0.4 ? 255 : 0; px[i] = px[i + 1] = px[i + 2] = paint; }
   g.putImageData(d, 0, 0);
   const mask = new THREE.CanvasTexture(cv); mask.flipY = false;
-  return new THREE.MeshPhysicalMaterial({ map: src.map, normalMap: src.normalMap, roughnessMap: src.roughnessMap, metalnessMap: src.metalnessMap, roughness: src.roughness, metalness: src.metalness,
-    clearcoat: 1, clearcoatMap: mask, clearcoatRoughness: 0.1, envMapIntensity: 0.85 });
+  // smooth paint: no weave normal map, no roughness texture; carbon bits keep their colour from the map
+  return new THREE.MeshPhysicalMaterial({ map: src.map, color: new THREE.Color(PAINT_SHADE, PAINT_SHADE, PAINT_SHADE), roughness: 0.38, metalness: 0,
+    clearcoat: 1, clearcoatMap: mask, clearcoatRoughness: 0.08, envMapIntensity: 0.85 });
 }
 function contactShadow(ref) {
   const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d');
@@ -668,7 +670,7 @@ function contactShadow(ref) {
   m.rotation.x = -Math.PI / 2; m.position.set(0, ref.min.y + 0.003, (ref.min.z + ref.max.z) / 2); return m;
 }
 const SHOW_YAW = 1.95;   // opening pose: three-quarter view, nose to the left
-const carPark = mobile ? [0, -0.4, 0.4] : [AV_X - 0.02, AV_Y - 1.36, 0.3];
+const carPark = mobile ? [0, -0.33, 0.4] : [AV_X - 0.02, AV_Y - 1.36, 0.3];
 const SIZE = mobile ? 0.85 : 1;
 function setCarOpacity(o) {
   if (intro.opacity === o) return; intro.opacity = o;
@@ -843,6 +845,7 @@ function frame() {
 
   // overlays
   hero.style.opacity = 1 - smooth(0.0, 0.05, p);
+  hero.style.visibility = p > 0.05 ? 'hidden' : 'visible';   // faded-out links must not stay clickable
   hero.style.transform = `translateY(${-smooth(0, 0.06, p) * 40}px)`;
   const inTunnel = p > 0.16 && p < 0.95;
   hud.classList.toggle('on', inTunnel); depth.classList.toggle('on', p > 0.12); hint.classList.toggle('on', inTunnel && p < 0.4);

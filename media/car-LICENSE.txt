@@ -1,0 +1,9 @@
+media/car.glb
+
+This work is based on "Lotus Renault F1 Car (FREE DOWNLOAD)"
+(https://sketchfab.com/3d-models/lotus-renault-f1-car-free-download-ecc7078c174448539704403be7aa3284)
+by Kanedog (https://sketchfab.com/Kane33), licensed under CC-BY-4.0
+(http://creativecommons.org/licenses/by/4.0/).
+
+Changes: livery repainted white and black, all sponsor text and logos removed,
+ground plane removed, textures resized, mesh data repacked.
