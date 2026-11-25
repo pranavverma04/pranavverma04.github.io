@@ -813,8 +813,8 @@ function frame() {
   let g = -1; GROUPS.forEach((_, i) => { if (cz < groupStart(i) + 3) g = i; });
   if (g !== curGroup) {
     curGroup = g;
-    if (g >= 0) { $('hudNo').textContent = GROUPS[g].no + ' / ' + String(GROUPS.length).padStart(2, '0'); $('hudName').textContent = GROUPS[g].name; $('hudLine').textContent = GROUPS[g].line; }
-    else { $('hudNo').textContent = '00'; $('hudName').textContent = 'Entering'; $('hudLine').textContent = 'Every card on these walls used to be a dot of my name.'; }
+    if (g >= 0) { $('hudNo').textContent = GROUPS[g].no + ' / ' + String(GROUPS.length).padStart(2, '0') + ' · ' + (GROUPS[g].kicker || ''); $('hudName').textContent = GROUPS[g].name; $('hudLine').textContent = GROUPS[g].line; }
+    else { $('hudNo').textContent = '00'; $('hudName').textContent = 'Entering'; $('hudLine').textContent = 'The journey so far, in order. Software first, hardware last.'; }
     GROUPS.forEach((gr, i) => gr.btn.classList.toggle('active', i === g));
     endBtn.classList.toggle('active', false);
   }
