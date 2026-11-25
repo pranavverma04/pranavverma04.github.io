@@ -672,7 +672,8 @@ function openPanel(i) {
   const esc = (t) => String(t).replace(/[&<>]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[ch]));
   const flow = (p.flow || []).map((row) => `<div class="flow-row">${row.map((t, i) => i % 2 === 0 ? `<span class="node">${esc(t)}</span>` : `<span class="edge"><i>${t ? esc(t) : '&nbsp;'}</i><s></s></span>`).join('')}</div>`).join('');
   const bugs = (p.bugs || []).map(([q, a]) => `<li><b>${esc(q)}</b><span>${esc(a)}</span></li>`).join('');
-  $('pCase').innerHTML = (flow ? `<h4 class="case-h mono">How it is wired</h4><div class="flow">${flow}</div>` : '') + (bugs ? `<h4 class="case-h mono">Problems I hit and fixed</h4><ol class="bugs">${bugs}</ol>` : '');
+  const extra = p.extra ? `<figure class="extra"><video src="${p.extra.video}" poster="${p.extra.poster}" muted loop autoplay playsinline controls></video><figcaption class="mono">${esc(p.extra.caption)}</figcaption></figure>` : '';
+  $('pCase').innerHTML = extra + (flow ? `<h4 class="case-h mono">How it is wired</h4><div class="flow">${flow}</div>` : '') + (bugs ? `<h4 class="case-h mono">Problems I hit and fixed</h4><ol class="bugs">${bugs}</ol>` : '');
   $('pStatus').textContent = p.status;
   const l = $('pLink'); if (p.link) { l.href = p.link; l.hidden = false; l.textContent = p.link.includes('github') ? 'Code ↗' : 'Open live ↗'; } else l.hidden = true;
   panel.hidden = false; panel.querySelector('.panel-x').focus();

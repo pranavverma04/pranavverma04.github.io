@@ -151,10 +151,11 @@ export const PROJECTS = [
     ],
   },
   {
-    id: 'mp3', group: 'hw', title: 'Pocket MP3 Player', img: 'media/mp3.jpg', video: 'media/mp3.mp4',
-    line: 'Retro MP3 player: OLED screen, joystick, real speaker.',
+    id: 'handheld', group: 'hw', title: 'OLED Handheld', img: 'media/mp3.jpg', video: 'media/mp3.mp4',
+    extra: { video: 'media/cricket.mp4', poster: 'media/cricket.jpg', caption: 'Same board running Pocket Cricket, my game for it.' },
+    line: 'One OLED + joystick board: a pocket MP3 player and a cricket game.',
     status: 'Breadboard prototype',
-    stack: ['ESP32', 'UNO R4', 'DFPlayer Mini', 'SH1106 OLED'],
+    stack: ['ESP32', 'UNO R4', 'DFPlayer Mini', 'SH1106 OLED', 'C++'],
     flow: [
       ['Joystick', 'ADC', 'ESP32 / UNO R4', 'I²C', 'SH1106 OLED'],
       ['ESP32 / UNO R4', 'UART', 'DFPlayer Mini', '', '4 Ω speaker'],
@@ -163,32 +164,16 @@ export const PROJECTS = [
       ['Background hiss from the speaker', '1 kΩ in series with the DFPlayer RX line removed it.'],
       ['Joystick could damage the ESP32', 'Powered it from 3.3 V, not 5 V: ESP32 ADC pins are 3.3 V max.'],
       ['Tracks played in the wrong order', 'macOS leaves hidden ._ files on the SD card; cleaned with dot_clean.'],
+      ['30 fps on a small board', 'Each game frame gets 33 ms for input, ball physics and drawing, so the scene is kept to simple shapes.'],
     ],
     points: [
-      'DFPlayer Mini reads the SD card and drives a 4 Ω speaker.',
-      '128×64 OLED menu driven by a 5-pin joystick.',
-      'ESP32 version adds phone control over Bluetooth.',
-      'Same player ported to Arduino UNO R4 (Renesas RA4M1).',
+      'MP3 player: DFPlayer Mini reads the SD card and drives a 4 Ω speaker; joystick menu on a 128×64 OLED.',
+      'ESP32 version adds phone control over Bluetooth; also ported to Arduino UNO R4 (Renesas RA4M1).',
+      'Pocket Cricket: a two-view cricket game at ~30 fps on the same screen and joystick.',
+      'Shot direction comes from the joystick at the moment you swing; fielders chase the ball.',
     ],
   },
-  {
-    id: 'cricket', group: 'hw', title: 'Pocket Cricket', img: 'media/cricket.jpg', video: 'media/cricket.mp4', fy: 0.42,
-    line: 'A cricket game on the MP3 player’s screen and joystick.',
-    status: 'Playable',
-    stack: ['UNO R4', 'Adafruit GFX', 'C++'],
-    flow: [
-      ['Joystick', 'ADC', 'UNO R4 · RA4M1', 'I²C · 1 frame / 33 ms', 'SH1106 OLED'],
-    ],
-    bugs: [
-      ['30 fps on a small board', 'Each frame gets 33 ms for input, ball physics and drawing, so the scene is kept to simple shapes.'],
-    ],
-    points: [
-      'Runs at ~30 fps on a 128×64 OLED.',
-      'Batting view down the pitch, then cuts to a top view of the field.',
-      'Shot direction comes from the joystick at the moment you swing.',
-      'Fielders chase the ball; runs are what the ball actually earns.',
-    ],
-  },
+
 ];
 
 

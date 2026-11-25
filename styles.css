@@ -179,3 +179,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .hero h1 .hl { color: var(--bone); }
 .end h2 em { font-style: normal; color: var(--accent); }
 @media (prefers-reduced-motion: reduce) { .otw i { animation: none; } }
+
+.panel .extra { margin: 22px 0 4px; background: #000; }
+.panel .extra video { width: 100%; max-height: 46vh; object-fit: contain; display: block; }
+.panel .extra figcaption { background: var(--ink); color: var(--bone-dim); padding: 8px 12px; font-size: 11px; }
