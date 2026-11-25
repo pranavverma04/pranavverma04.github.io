@@ -669,6 +669,10 @@ function openPanel(i) {
   $('pTitle').textContent = p.title; $('pLine').textContent = p.line;
   $('pPoints').innerHTML = p.points.map((t) => `<li>${t}</li>`).join('');
   $('pStack').innerHTML = p.stack.map((t) => `<span>${t}</span>`).join('');
+  const esc = (t) => String(t).replace(/[&<>]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[ch]));
+  const flow = (p.flow || []).map((row) => `<div class="flow-row">${row.map((t, i) => i % 2 === 0 ? `<span class="node">${esc(t)}</span>` : `<span class="edge"><i>${t ? esc(t) : '&nbsp;'}</i><s></s></span>`).join('')}</div>`).join('');
+  const bugs = (p.bugs || []).map(([q, a]) => `<li><b>${esc(q)}</b><span>${esc(a)}</span></li>`).join('');
+  $('pCase').innerHTML = (flow ? `<h4 class="case-h mono">How it is wired</h4><div class="flow">${flow}</div>` : '') + (bugs ? `<h4 class="case-h mono">Problems I hit and fixed</h4><ol class="bugs">${bugs}</ol>` : '');
   $('pStatus').textContent = p.status;
   const l = $('pLink'); if (p.link) { l.href = p.link; l.hidden = false; l.textContent = p.link.includes('github') ? 'Code ↗' : 'Open live ↗'; } else l.hidden = true;
   panel.hidden = false; panel.querySelector('.panel-x').focus();
@@ -690,6 +694,7 @@ indexEl.addEventListener('click', (e) => {
 const aboutEl = $('about');
 const rows = (list, f) => list.map(f).join('');
 $('aboutBody').innerHTML =
+  `<section class="ix-group"><h4>Now</h4>${rows(ABOUT.now, ([k, v]) => `<div class="ab-row"><span class="k hot">${k}</span><span class="v">${v}</span></div>`)}</section>` +
   `<section class="ix-group"><h4>Quick facts</h4>${rows(ABOUT.facts, ([k, v]) => `<div class="ab-row"><span class="k">${k}</span><span class="v">${v}</span></div>`)}</section>` +
   `<section class="ix-group"><h4>Results</h4>${rows(ABOUT.results, ([k, v]) => `<div class="ab-row"><span class="k hot">${k}</span><span class="v">${v}</span></div>`)}</section>` +
   `<section class="ix-group"><h4>Skills</h4>${rows(ABOUT.skills, ([k, v]) => `<div class="ab-row"><span class="k">${k}</span><span class="v">${v}</span></div>`)}</section>` +
@@ -808,7 +813,7 @@ function frame() {
   let g = -1; GROUPS.forEach((_, i) => { if (cz < groupStart(i) + 3) g = i; });
   if (g !== curGroup) {
     curGroup = g;
-    if (g >= 0) { $('hudNo').textContent = GROUPS[g].no + ' / 04'; $('hudName').textContent = GROUPS[g].name; $('hudLine').textContent = GROUPS[g].line; }
+    if (g >= 0) { $('hudNo').textContent = GROUPS[g].no + ' / ' + String(GROUPS.length).padStart(2, '0'); $('hudName').textContent = GROUPS[g].name; $('hudLine').textContent = GROUPS[g].line; }
     else { $('hudNo').textContent = '00'; $('hudName').textContent = 'Entering'; $('hudLine').textContent = 'Every card on these walls used to be a dot of my name.'; }
     GROUPS.forEach((gr, i) => gr.btn.classList.toggle('active', i === g));
     endBtn.classList.toggle('active', false);
