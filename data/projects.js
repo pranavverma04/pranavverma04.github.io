@@ -31,6 +31,18 @@ export const PROJECTS = [
     ],
   },
   {
+    id: 'northstar', group: 'sw', title: 'Northstar', img: 'media/northstar.jpg',
+    line: 'Career copilot: your resume against the job you want, and the path to close the gap.',
+    status: 'Open source', link: 'https://github.com/pranavverma04/resume-matcher',
+    stack: ['Python', 'FastAPI', 'Sentence embeddings', 'SQLite', 'JavaScript'],
+    points: [
+      'Matches a resume to a job description with sentence embeddings (all-MiniLM-L6-v2), runs on a laptop CPU.',
+      'Skill gap for 18 roles, with a week-by-week plan and learning links.',
+      'Accounts, application tracker, analytics and an admin view for colleges.',
+      'Builds a JD-tailored resume from one fixed template.',
+    ],
+  },
+  {
     id: 'kampus', group: 'sw', title: 'Kampus', img: 'media/kampus.jpg',
     line: 'Campus app for students: attendance, timetable, ID, library.',
     status: 'PWA + Android',
@@ -50,6 +62,18 @@ export const PROJECTS = [
       'Problem SIH26261: faculty who exist on paper only.',
       'Graph of faculty shared across colleges, forensic view for edited documents.',
       'Rebuilt as MARK 2.0 with a tighter 3-feature scope.',
+    ],
+  },
+  {
+    id: 'firewatch', group: 'sw', title: 'FireWatch', img: 'media/firewatch.jpg',
+    line: 'Finds factories that keep burning, from satellite fire data.',
+    status: 'Kritical Hacks 2026 · team', link: 'https://github.com/pranavverma04/firewatch',
+    stack: ['NASA FIRMS', 'OpenStreetMap', 'Python', 'Streamlit', 'JavaScript'],
+    points: [
+      'Joins NASA fire detections with industrial sites from OpenStreetMap.',
+      'Flags a site when heat stays in the same spot for 3+ days.',
+      'Checks 8 satellites (VIIRS, MODIS, Sentinel-3, Meteosat): newest pass in about 21 min instead of about 2 h 40 min.',
+      'Back-tested on known industrial fires and on Punjab crop fires (false alarms).',
     ],
   },
   {
@@ -220,17 +244,6 @@ export const ARCHIVE = [
     points: [
       'Legal text in, simple explanation out.',
       'Offline demo mode so the pitch never depends on Wi-Fi.',
-    ],
-  },
-  {
-    id: 'firewatch', group: 'hack', title: 'FireWatch', img: 'media/firewatch.jpg', link: 'https://github.com/pranavverma04/firewatch',
-    line: 'Finds industrial heat sources in satellite fire data.',
-    status: 'Kritical Hacks 2026 · team',
-    stack: ['NASA FIRMS', 'OpenStreetMap', 'Python', 'Dashboard'],
-    points: [
-      'Joins NASA fire detections with industrial sites from OpenStreetMap.',
-      'Flags a site when heat stays in the same spot for 3+ days.',
-      'Ranks which sites to inspect first. Team project.',
     ],
   },
   {
